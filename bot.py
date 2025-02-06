@@ -1,3 +1,4 @@
+"""
 import json
 import requests
 from flask import Flask, request
@@ -6,7 +7,38 @@ import subprocess
 app = Flask(__name__)
 
 TELEGRAM_API_URL = "https://api.telegram.org/bot7618634435:AAGbBdvclyDRwSeYJnl-ycfOn7VZcNlQ6G8/sendMessage"
+"""
+from flask import Flask, request, jsonify
+from g4f.client import Client
 
+# Initialize Flask app
+app = Flask(__name__)
+
+# Initialize the g4f client
+client = Client()
+
+@app.route('/get_response', methods=['POST'])
+def get_response():
+    # Get the message from the request
+    user_message = request.json.get('message', '')
+
+    if not user_message:
+        return jsonify({'error': 'No message provided'}), 400
+
+    # Generate a response using g4f client
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": user_message}],
+        web_search=False
+    )
+
+    # Extract the response content
+    bot_response = response.choices[0].message.content
+
+    # Return the response as JSON
+    return jsonify({'response': bot_response})
+
+"""
 # Webhook endpoint for receiving updates from Telegram
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -50,6 +82,6 @@ def send_message(chat_id, text):
     }
     response = requests.post(TELEGRAM_API_URL, params=params)
     return response.json()
-
+"""
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=5000)
